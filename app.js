@@ -1,66 +1,82 @@
 var express = require('express');
-var bodyParser = require('body-parser')
+var bodyParser = require("body-parser");
+var fs = require('fs')
+var multer = require('multer')
+
+var customConfig = multer.diskStorage({
+    destination: function (req, file, next) {
+        next(null, './uploads')
+    },
+    filename: function (req, file, next) {
+        next(null, Math.random() + '-' +file.originalname)
+    }
+  })
+
+var upload = multer({ storage: customConfig })
+
 var server = express()
 
-server.use( bodyParser.urlencoded( {extended: true} ) )
-server.use( bodyParser.json() )
+server.use(bodyParser.urlencoded())
+server.use(bodyParser.json())
+server.use(express.static('./frontend'))
 
-server.use( express.static('./frontend') )
 
-server.get('/user/:name/:lname', (req, res)=>{
-    res.send('My name is ' + req.params.name + " " + req.params.lname)
-})
-
-server.get('/hello', (req, res)=>{
-    res.send('Hello World')
-})
-
-server.get('/search', (req, res)=>{
-    res.send( req.query )
-})
-
-server.post('/login', (req, res)=>{
-    res.send( req.body.username + ' ' + req.body.password  )
+server.post('/profile', upload.array('profilePicture', 10), function (req, res, next) {
+    console.log(req.files)
+    res.send("File successfully uploaded.")
 })
 
 
+var users = [{ username: "umar", password: 'abcd1234' }]
 
+server.get('/getAllUsers', (req, res) => {
+    res.send(users)
+})
 
-
-
-var users = [{username: "umar", email: 'hello@abc.com'}];
-
-server.get('/users', (req, res)=>{
-
-    res.json( users )
-
+server.post('/addUser', (req, res) => {
+    let user = { username: req.body.username, password: req.body.password }
+    users.push(user)
+    res.end("User is added")
 })
 
 
+server.post('/createFile', (req, res) => {
 
+    fs.appendFile('myfiles/mynewfile.txt', "Hello Everyone " + "\r\n", function (err) {
+        if (err) throw err;
 
-
-server.post('/addusers', (req, res)=>{
-
-    let newUser = { username: req.body.username, email: req.body.email }
-    users.push( newUser )
-    res.send( "User have been successfully added." )
-
-})
-
-server.delete('/users', (req, res)=>{
-
-    users = users.filter( (user) => {
-        return user.username != req.body.username
-    } )
-
-    res.send( "User have been deleted successfully." )
+        res.send("File successfully created.")
+    });
 
 })
 
-// server.put('/users', (req, res)=>{
-//     res.send( req.body.username + ' ' + req.body.password  )
-// })
+server.get('/getData', (req, res, next) => {
 
+    fs.readFile('myfiles/mynewfile.txt', 'utf8', function (err, data) {
+        if(err){
+            next(err)
+        }else{
+            res.send(data)
+        }
+    });
 
-server.listen(8000, () => { console.log("Server successfully started.") } )
+})
+
+server.delete('/deleteFile', (req, res, next) => {
+
+    fs.unlink('myfiles/mynewfile.txt', function (err) {
+        if(err){
+            next(err)
+        }else{
+            res.send("File successfully deleted.")
+        }
+    });
+
+})
+
+server.use((err,req,res, next) => {
+    console.log(err)
+    res.status(500).send("my name is Umar")
+})
+
+server.listen(8000, () => console.log("server is running"))
