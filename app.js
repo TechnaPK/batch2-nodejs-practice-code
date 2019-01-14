@@ -7,11 +7,44 @@ var session = require("express-session")
 var passport = require("passport")
 var LocalStrategy = require('passport-local').Strategy
 
+const mongoose = require('mongoose')
+
+mongoose.connect('mongodb://localhost:27017/database-name', { useNewUrlParser: true });
+mongoose.connection.once('open', function () { console.log('Successfully connected to DB') });
+
+const User = mongoose.model('User', { name: String, email: String, balance: Number });
 
 var server = express()
 
+
+server.get('/test', (req, res) => {
+
+    // const user = new User({ name: 'Umar', email: 'umar@yahoo.com', balance: 100 });
+    // user.save(() => { res.send("user successfully saved into database.") });
+
+    // User.findByIdAndUpdate('5c38949272cfde3a8c5a0b95', {balance: 200000}, function(err, user){
+    //     if(err) return res.send( err )
+    //     res.send(user)
+    // })
+
+    // With a JSON doc
+    User.
+        find({
+            name: { $in: ['Umar', 'Test'] },
+            balance: { $gt: 50, $lt: 1000000 },
+        }).
+        limit(10).
+        skip(30).
+        select({ name: 1 }).
+        sort({ balance: -1 }).
+        exec(function (err, users) {
+            if (err) return res.send(err)
+            res.send(users)
+        });
+})
+
 server.use(express.static('./frontend'))
-server.use(bodyParser.urlencoded({extended:true}))
+server.use(bodyParser.urlencoded({ extended: true }))
 server.use(bodyParser.json())
 
 
@@ -28,7 +61,7 @@ var users = [
 passport.use(new LocalStrategy(
     function (username, password, next) {
 
-        var user = users.find( (user) => {
+        var user = users.find((user) => {
             return user.username === username && user.password === password;
         })
 
@@ -90,7 +123,7 @@ server.post('/profile', upload.array('profilePicture', 10), function (req, res, 
 
 
 server.get('/getAllUsers', (req, res) => {
-    res.send(users)
+    res.status(404).send(users)
 })
 
 server.post('/addUser', (req, res) => {
@@ -135,8 +168,16 @@ server.delete('/deleteFile', (req, res, next) => {
 })
 
 server.use((err, req, res, next) => {
-    console.log(err)
-    res.status(500).send("my name is Umar")
+    console.warn(err)
+    res.status(500).send("Error Catched by error handler.")
 })
 
 server.listen(8000, () => console.log("server is running"))
+
+
+
+// var morgan = require('morgan')
+// var path = require('path')
+// // create a write stream (in append mode)
+// var accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
+// server.use(morgan('combined', { stream: accessLogStream }))
