@@ -6,25 +6,6 @@ var upload = require('../config/multer-config')
 
 module.exports = function (server, users) {
 
-    server.get('/test', (req, res) => {
-
-        // With a JSON doc
-        Users.
-            find({
-                name: { $in: ['Umar', 'Test'] },
-                balance: { $gt: 50, $lt: 1000000 },
-            }).
-            limit(10).
-            skip(30).
-            select({ name: 1 }).
-            sort({ balance: -1 }).
-            exec(function (err, users) {
-                if (err) return res.send(err)
-                res.send(users)
-            });
-
-    })
-
     server.post('/login', passport.authenticate('local'), function (req, res) {
         res.redirect('/dashboard');
     });
