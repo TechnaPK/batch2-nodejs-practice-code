@@ -4,7 +4,33 @@ var fs = require('fs')
 var Users = require('../models/model-users')
 var upload = require('../config/multer-config')
 
-module.exports = function (server, users) {
+module.exports = function (server) {
+
+    server.get('/getAllUsers', (req, res) => {
+        Users.
+            find({
+                name: { $in: ['Talha', 'Test'] },
+                balance: { $gt: 10, $lt: 1000000 },
+            }).
+            limit(10).
+            sort({ balance: 1 }).
+            exec(function (err, users) {
+                if (err) {
+                    return res.json({ success: false, err: err })
+                }
+                res.json({ success: true, data: users })
+            });
+    })
+
+    server.post('/addUser', (req, res) => {
+        var user = new Users({ name: req.body.name, email: req.body.email, balance: req.body.balance })
+        user.save((err, user) => {
+            if (err) {
+                return res.json({ success: false, err: err })
+            }
+            res.json({ success: true, data: user })
+        });
+    })
 
     server.post('/login', passport.authenticate('local'), function (req, res) {
         res.redirect('/dashboard');
@@ -25,19 +51,6 @@ module.exports = function (server, users) {
         console.log(req.files)
         res.send("File successfully uploaded.")
     })
-
-
-
-    server.get('/getAllUsers', (req, res) => {
-        res.status(404).send(users)
-    })
-
-    server.post('/addUser', (req, res) => {
-        let user = { id: Math.random(), username: req.body.username, password: req.body.password }
-        users.push(user)
-        res.end("User is added")
-    })
-
 
     server.post('/createFile', (req, res) => {
 

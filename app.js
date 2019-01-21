@@ -14,23 +14,7 @@ server.use(bodyParser.json())
 
 require('./server/config/db-config');
 require('./server/config/passport-config')(server, users);
-require('./server/routes/all-routes')(server, users);
-
-var Users = require('./server/models/model-users')
-server.get('/test', (req, res) => {
-    
-    Users.
-        find({
-            name: { $in: ['Umar', 'Test'] },
-            balance: { $gt: 50, $lt: 1000000 },
-        }).
-        limit(10).
-        exec(function (err, users) {
-            if (err) return res.send(err)
-            res.send(users)
-        });
-
-})
+require('./server/routes/all-routes')(server);
 
 server.use((err, req, res, next) => {
     console.warn(err)
