@@ -8,7 +8,7 @@ var users = [
 
 var server = express()
 
-server.use(express.static('./frontend'))
+server.use(express.static('./build'))
 server.use(bodyParser.urlencoded({ extended: true }))
 server.use(bodyParser.json())
 
