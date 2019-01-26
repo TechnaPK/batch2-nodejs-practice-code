@@ -1,10 +1,16 @@
 var session = require("express-session")
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
+// var MongoStore = require('connect-mongo')(session)
+// var mongoose = require('mongoose')
 
 module.exports = function (server, users) {
 
     server.use(session({ secret: "secret-word" }));
+    //  server.use(session({
+    //     store: new MongoStore({ mongooseConnection: mongoose.connection }),
+    //     secret: "secret-word" 
+    // }));
     server.use(passport.initialize());
     server.use(passport.session());
 
